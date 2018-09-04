@@ -191,6 +191,15 @@ public class MainActivity extends AppCompatActivity {
         //Log.d("test", "ここまで" );
     }
 
+    //Realmの後処理。
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        //オーバライドしてclose()の呼び出しを行う
+        mRealm.close();
+    }
+
 
 
 
