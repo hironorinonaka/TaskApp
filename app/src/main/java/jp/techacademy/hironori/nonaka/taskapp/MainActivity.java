@@ -5,12 +5,17 @@ import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
@@ -24,6 +29,8 @@ public class MainActivity extends AppCompatActivity {
 
     //レルムクラスを保持するフィールド
     private Realm mRealm;
+
+
     //レルムが変化した内容を保持するフィールド
     //例えば，データベースにデータの追加や削除があったときに呼び出されるリスナー
     private RealmChangeListener mRealmListener = new RealmChangeListener() {
@@ -32,8 +39,13 @@ public class MainActivity extends AppCompatActivity {
             reloadListView();
         }
     };
+
     private ListView mListView;
     private TaskAdapter mTaskAdapter;
+    private String category_text;
+    private EditText category;
+
+
 
 
     //floatingActionButtonをタップした時の処理を修正。Realm、ListViewの設定。
@@ -52,6 +64,28 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+
+
+
+        //カテゴリー検索ボタンを押下するとeditTextの内容を検索する
+        Button button = (Button) findViewById(R.id.button1);
+
+        // ボタンに OnClickListener インターフェースを実装する
+        button.setOnClickListener(new View.OnClickListener() {
+
+            // クリック時に呼ばれるメソッド
+            @Override
+            public void onClick(View view) {
+
+
+                reloadListView1();
+
+            }
+        });
+
+
+
 
         // Realmの設定
         mRealm = Realm.getDefaultInstance();
@@ -74,6 +108,8 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+
 
         // ListViewを長押ししたときの処理・削除する処理を記述
         mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -138,15 +174,24 @@ public class MainActivity extends AppCompatActivity {
         mTaskAdapter.notifyDataSetChanged();
     }
 
+    //ListViewの更新。
+    private void reloadListView1() {
+        this.category = (EditText) findViewById(R.id.editText1);
+        this.category_text = category.getText().toString();
 
-    //Realmの後処理。
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
+        // Realmデータベースから、ここでカテゴリと合致する全てのデータを受け取る
+        RealmResults<Task> taskRealmResults = mRealm.where(Task.class).equalTo("category",this.category_text).findAll();
+        // 上記の結果を、TaskList としてセットする
+        mTaskAdapter.setTaskList(mRealm.copyFromRealm(taskRealmResults));
+        // TaskのListView用のアダプタに渡す
+        mListView.setAdapter(mTaskAdapter);
+        // 表示を更新するために、アダプターにデータが変更されたことを知らせる
+        mTaskAdapter.notifyDataSetChanged();
 
-        //オーバライドしてclose()の呼び出しを行う
-        mRealm.close();
+        //Log.d("test", "ここまで" );
     }
+
+
 
 
 
